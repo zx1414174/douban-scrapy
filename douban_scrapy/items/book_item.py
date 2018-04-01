@@ -1,0 +1,26 @@
+import scrapy
+
+
+class BookItem(scrapy.Item):
+    book_img = scrapy.Field()
+    url = scrapy.Field()
+    subject_id = scrapy.Field()
+    isbn = scrapy.Field()
+    author = scrapy.Field()
+    publisher = scrapy.Field()
+    publication_year = scrapy.Field()
+    pages = scrapy.Field()
+    price = scrapy.Field()
+    layout = scrapy.Field()
+    grade = scrapy.Field()
+    graded_number = scrapy.Field()
+    five_graded_percent = scrapy.Field()
+    four_graded_percent = scrapy.Field()
+    three_graded_percent = scrapy.Field()
+    two_graded_percent = scrapy.Field()
+    one_graded_percent = scrapy.Field()
+    short_comment_count = scrapy.Field()
+    book_review_count = scrapy.Field()
+    note_count = scrapy.Field()
+    create_time = scrapy.Field()
+    update_time = scrapy.Field()

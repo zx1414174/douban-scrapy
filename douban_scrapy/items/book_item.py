@@ -2,6 +2,7 @@ import scrapy
 
 
 class BookItem(scrapy.Item):
+    title = scrapy.Field()
     book_img = scrapy.Field()
     url = scrapy.Field()
     subject_id = scrapy.Field()

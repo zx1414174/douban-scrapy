@@ -5,10 +5,11 @@ from pyquery import PyQuery
 from douban_scrapy.items.book_item import BookItem
 from bs4 import BeautifulSoup
 from douban_scrapy.utils.html.book_handler import BookHandler
+import time
 
 
 class BooksSpider(scrapy.Spider):
-    name = "books"
+    name = "books_spider"
 
     __detail_info = {
         '作者:': 'author',
@@ -20,6 +21,13 @@ class BooksSpider(scrapy.Spider):
         '装帧:': 'layout',
         'ISBN:': 'isbn',
     }
+
+    __headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36',
+        'Host': 'book.douban.com',
+        'Referer': 'https://book.douban.com/'
+    }
+
     def start_requests(self):
         """
         热门标签列表处理
@@ -29,13 +37,13 @@ class BooksSpider(scrapy.Spider):
         book_tag_model = BookTag()
         tag = book_tag_model.search_sql('where id={tag_id}'.format(tag_id=tag_id)).find()
         url = tag['url']
-        url = url.strip('/')
+        url = url.replace('tag//tag', 'tag').strip('/')
         start = 0
         while not False:
-            start = start + 1
+            start = start + 20
             param = '?start={start}&type=T'.format(start=start)
             page_url = url + param
-            yield scrapy.Request(url=page_url, callback=self.parse_list)
+            yield scrapy.Request(url=page_url, callback=self.parse_list, headers=self.__headers)
 
     def parse_list(self, response):
         """
@@ -47,8 +55,7 @@ class BooksSpider(scrapy.Spider):
         detail_doc_list = doc('ul.subject-list > li > div.info > h2 a')
         for detail_item in detail_doc_list.items():
             detail_url = detail_item.attr('href')
-            request = scrapy.Request(url=detail_url, callback=self.parse_book)
-            print(detail_url)
+            request = scrapy.Request(url=detail_url, callback=self.parse_book, headers=self.__headers)
             request.meta['url'] = detail_url
             yield request
 
@@ -65,7 +72,7 @@ class BooksSpider(scrapy.Spider):
             if soup_item.string in self.__detail_info.keys():
                 field_key = self.__detail_info[soup_item.string]
                 book_item[field_key] = BookHandler.detail_info_handler(soup_item, field_key)
-        book_item['url'] = response.meta['item'].strip('/')
+        book_item['url'] = response.meta['url'].strip('/')
         book_item['title'] = soup.select('#wrapper > h1 > span')[0].string
         book_item['subject_id'] = book_item['url'][book_item['url'].rfind('/')+1:]
         book_item['book_img'] = soup.select('#mainpic > a > img')[0].attrs['src']
@@ -88,6 +95,10 @@ class BooksSpider(scrapy.Spider):
             book_item['note_count'] = soup.select('div.ugc-mod > div.hd > h2 > span.pl > a > span')[0].string
         else:
             book_item['note_count'] = 0
+        now_time = int(time.time())
+        book_item['create_time'] = now_time
+        book_item['update_time'] = now_time
+        return book_item
 
 
 
